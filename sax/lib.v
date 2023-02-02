@@ -1,5 +1,7 @@
 module sax
 
+import strings
+
 pub struct Attribute {
 pub:
 	key string
@@ -19,7 +21,7 @@ mut:
 pub struct Parser {
 mut:
 	data   string
-	chars  string
+	sb     strings.Builder
 	cursor int
 	line   int
 	on     SaxCallbacks
@@ -31,12 +33,12 @@ pub fn new_parser(mut callbacks SaxCallbacks) Parser {
 	}
 }
 
+[direct_array_access; inline]
 fn (mut parser Parser) peek() !rune {
 	if parser.cursor >= parser.data.len {
 		// end of document
 		return error('unexpected end of document')
 	}
-	// ch := parser.data[parser.cursor].vstring()
 	ch := parser.data[parser.cursor]
 	parser.cursor++
 	if ch == `\n` {
@@ -46,37 +48,38 @@ fn (mut parser Parser) peek() !rune {
 }
 
 pub fn (mut parser Parser) parse_comment() !string {
-	mut msg := ''
+	mut msg := strings.new_builder(1024)
 	for {
 		ch := parser.peek()!
 		if ch == `>` {
 			// end of comment
 			break
 		} else {
-			msg += '${ch}'
+			msg.write_rune(ch)
 		}
 	}
-	return msg
+	return msg.str()
 }
 
 fn peek_until(mut parser Parser, x rune) !string {
-	mut text := ''
+	mut text := strings.new_builder(128)
 	for {
-		mut ch := parser.peek()!
+		ch := parser.peek()!
 		if ch == `\\` {
-			text += '${ch}'
-			ch = parser.peek()!
+			text.write_rune(ch)
+			text.write_rune(parser.peek()!)
 		} else if ch == x {
 			break
+		} else {
+			text.write_rune(ch)
 		}
-		text += '${ch}'
 	}
-	return text
+	return text.str()
 }
 
 pub fn (mut parser Parser) parse_attributes() ![]Attribute {
 	mut attrs := []Attribute{}
-	mut key := ''
+	mut key := strings.new_builder(128)
 	for {
 		ch := parser.peek()!
 		match ch {
@@ -89,14 +92,14 @@ pub fn (mut parser Parser) parse_attributes() ![]Attribute {
 				if q0 == `"` {
 					val := peek_until(mut parser, `"`)!
 					attrs << Attribute{
-						key: key
+						key: key.str()
 						val: val
 					}
-					key = ''
+					key.clear()
 				}
 			}
 			else {
-				key += '${ch}'
+				key.write_rune(ch)
 			}
 		}
 	}
@@ -117,7 +120,7 @@ pub fn (mut parser Parser) parse_tag() ! {
 		}
 		else {
 			mut attrs := []Attribute{}
-			mut name := ''
+			mut name := strings.new_builder(100)
 			for {
 				match ch {
 					`>` {
@@ -128,38 +131,37 @@ pub fn (mut parser Parser) parse_tag() ! {
 						break
 					}
 					else {
-						name += '${ch}'
+						name.write_rune(ch)
 					}
 				}
 				ch = parser.peek()!
 			}
-			parser.on.element_start(mut parser, name, attrs)!
+			parser.on.element_start(mut parser, name.str(), attrs)!
 		}
 	}
 }
 
-fn (mut parser Parser)flush_chars() ! {
-	if parser.chars.len > 0 {
-		parser.on.characters(mut parser, parser.chars)!
-		parser.chars = ''
+fn (mut parser Parser) flush_chars() ! {
+	if parser.sb.len > 0 {
+		chars := parser.sb.str()
+		parser.on.characters(mut parser, chars)!
+		parser.sb.clear()
 	}
 }
 
 pub fn (mut parser Parser) parse(input string) ! {
+	parser.sb = strings.new_builder(1000)
 	parser.data = input
 	parser.on.document_start(mut parser)!
 	for {
-		ch := parser.peek() or {
-			// eof
-			break
-		}
+		ch := parser.peek() or { break }
 		match ch {
 			`<` {
 				parser.flush_chars()!
 				parser.parse_tag()!
 			}
 			else {
-				parser.chars += '${ch}'
+				parser.sb.write_rune(ch)
 			}
 		}
 	}
