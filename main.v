@@ -8,16 +8,16 @@ mut:
 	res   string
 }
 
-fn (mut mp XmlToHtml) document_start(mut st sax.SaxParser) ! {
+fn (mut mp XmlToHtml) document_start(mut st sax.Parser) ! {
 	mp.res += 'INIT\n'
 	println('init')
 }
 
-fn (mut mp XmlToHtml) document_end(mut st sax.SaxParser) ! {
+fn (mut mp XmlToHtml) document_end(mut st sax.Parser) ! {
 	println('fini')
 }
 
-fn (mut mp XmlToHtml) element_start(mut st sax.SaxParser, name string, attrs []sax.SaxAttribute) ! {
+fn (mut mp XmlToHtml) element_start(mut st sax.Parser, name string, attrs []sax.Attribute) ! {
 	if mp.depth == 0 {
 		if name != 'xmldoc' {
 			return error('Invalid root directory ${name}')
@@ -30,16 +30,16 @@ fn (mut mp XmlToHtml) element_start(mut st sax.SaxParser, name string, attrs []s
 	mp.depth++
 }
 
-fn (mut mp XmlToHtml) element_end(mut st sax.SaxParser, name string) ! {
+fn (mut mp XmlToHtml) element_end(mut st sax.Parser, name string) ! {
 	println('tag_close: </${name}>')
 	mp.depth--
 }
 
-fn (mut mp XmlToHtml) comment(mut st sax.SaxParser, text string) ! {
+fn (mut mp XmlToHtml) comment(mut st sax.Parser, text string) ! {
 	println('comment: ${text}')
 }
 
-fn (mut mp XmlToHtml) characters(mut st sax.SaxParser, text string) ! {
+fn (mut mp XmlToHtml) characters(mut st sax.Parser, text string) ! {
 	println('text: ${text}')
 }
 

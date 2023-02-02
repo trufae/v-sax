@@ -33,15 +33,15 @@ mut:
 	res   string
 }
 
-fn (mut mp XmlToHtml) document_start(mut st sax.SaxParser) ! {
+fn (mut mp XmlToHtml) document_start(mut st sax.Parser) ! {
 	...
 }
 
-fn (mut mp XmlToHtml) element_start(mut st sax.SaxParser, name string, attrs []sax.SaxAttribute) ! {
+fn (mut mp XmlToHtml) element_start(mut st sax.Parser, name string, attrs []sax.Attribute) ! {
 	mp.depth++
 }
 
-fn (mut mp XmlToHtml) element_end(mut st sax.SaxParser, name string) ! {
+fn (mut mp XmlToHtml) element_end(mut st sax.Parser, name string) ! {
 	if mp.depth < 1 {
 		return error ("cant close so many nodes")
 	}
