@@ -37,6 +37,16 @@ fn (mut mp XmlToHtml) document_start(mut st sax.SaxParser) ! {
 	...
 }
 
+fn (mut mp XmlToHtml) element_start(mut st sax.SaxParser, name string, attrs []sax.SaxAttribute) ! {
+	mp.depth++
+}
+
+fn (mut mp XmlToHtml) element_end(mut st sax.SaxParser, name string) ! {
+	if mp.depth < 1 {
+		return error ("cant close so many nodes")
+	}
+	mp.depth--
+}
 ...
 
 fn main() {
