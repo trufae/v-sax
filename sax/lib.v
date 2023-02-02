@@ -141,7 +141,7 @@ pub fn (mut parser Parser) parse_tag() ! {
 	}
 }
 
-fn flush_chars(mut parser Parser) ! {
+fn (mut parser Parser)flush_chars() ! {
 	if parser.chars.len > 0 {
 		parser.on.characters(mut parser, parser.chars)!
 		parser.chars = ''
@@ -158,7 +158,7 @@ pub fn (mut parser Parser) parse(input string) ! {
 		}
 		match ch {
 			'<' {
-				flush_chars(mut parser)!
+				parser.flush_chars()!
 				parser.parse_tag()!
 			}
 			else {
@@ -166,6 +166,6 @@ pub fn (mut parser Parser) parse(input string) ! {
 			}
 		}
 	}
-	flush_chars(mut parser)!
+	parser.flush_chars()!
 	parser.on.document_end(mut parser)!
 }
