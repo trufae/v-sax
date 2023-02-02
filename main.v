@@ -1,10 +1,9 @@
-import pdf
+// import pdf
 import sax
 import os
 
 struct XmlToHtml {
 mut:
-	// custom shit
 	depth int
 	res   string
 }
@@ -46,7 +45,7 @@ fn (mut mp XmlToHtml) characters(mut st sax.SaxParser, text string) ! {
 
 fn main() {
 	if os.args.len < 2 {
-		println('vx2doc file.xml')
+		println('vsax file.xml')
 		exit(1)
 	}
 	argv := os.args[1]

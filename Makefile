@@ -1,6 +1,8 @@
 all:
-	v .
-	v fmt -w main.v sax/lib.v
-	-./vx2doc
-	./vx2doc test.xml
-# ./vx2doc ../examples/list.xml
+	v -o vsax main.v
+	v fmt -w **.v
+	-./vsax
+	./vsax test.xml
+
+clean:
+	rm -f vsax main
